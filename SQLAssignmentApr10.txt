@@ -1,0 +1,120 @@
+CREATE TABLE Employee(sno int primary key, empno int , ename nchar(30),job nchar(30),
+	manager int,hiredate date, salary float, commission float, deptno int)
+
+
+CREATE TABLE Manager(managerId int primary key, mname nchar(30))
+CREATE TABLE Department(deptNo int primary key, deptName nchar(30))
+
+SELECT * FROM Employee
+SELECT * FROM Manager
+
+INSERT INTO Manager VALUES(8566, 'M1')
+INSERT INTO Manager VALUES(8698, 'M2')
+INSERT INTO Manager VALUES(8839, 'M3')
+INSERT INTO Manager VALUES(8888, 'M4')
+INSERT INTO Manager VALUES(8902, 'M5')
+
+--DROP TABLE Manager
+DROP TABLE Employee
+
+INSERT INTO Department VALUES(10, 'Dept1')
+INSERT INTO Department VALUES(20, 'Dept2')
+INSERT INTO Department VALUES(30, 'Dept3')
+
+
+ALTER TABLE Employee ADD CONSTRAINT fk_dept FOREIGN KEY (manager) REFERENCES Manager (managerId)
+ALTER TABLE Employee ADD CONSTRAINT fk_dept1 FOREIGN KEY (deptno) REFERENCES Department (deptNo)
+
+CREATE OR ALTER PROCEDURE InsertIntoEmployee @sno int, @empNo int, @eName nchar(30), @job nchar(30),
+	@manager int, @hiredate date, @salary float, @commission float, @deptNo int
+AS
+	INSERT INTO Employee VALUES(@sno, @empNo, @eName , @job,@manager, @hiredate , @salary , @commission , @deptNo)
+
+EXEC InsertIntoEmployee 1,8369, 'Smith', 'CLERK', 8902, '1990-12-18', 800.00, 0.00, 20
+EXEC InsertIntoEmployee 2,8499, 'Anya', 'SALESMAN', 8698, '1991-02-20', 1600.00, 300.00, 30
+EXEC InsertIntoEmployee 3,8521, 'Seth', 'SALESMAN', 8698, '1991-02-22', 1250.00, 500.00, 30
+EXEC InsertIntoEmployee 4,8566, 'Mahadevan', 'MANAGER', 8839, '1991-04-02', 2985.00, .0, 20
+EXEC InsertIntoEmployee 5,8654, 'Momin', 'SALESMAN', 8698, '1991-09-28', 1250.00, 1400.00, 30
+EXEC InsertIntoEmployee 6,8698, 'Bina', 'MANAGER', 8839, '1991-05-01', 2850.00, .0 ,30
+EXEC InsertIntoEmployee 7,8882, 'Shivansh', 'MANAGER', 8839, '1991-06-09', 2450.00, .0 ,10
+EXEC InsertIntoEmployee 8,8888, 'Scott', 'ANALYST', 8566, '1992-12-09', 3000.00, .0 ,20
+EXEC InsertIntoEmployee 9,8839, 'Amir', 'PRESIDENT', NULL, '1991-11-18', 5000.00, .0 ,10
+EXEC InsertIntoEmployee 10,8844, 'Kuldeep', 'SALESMAN', 8698, '1991-09-08', 1500.00, 0.00 ,30
+EXEC InsertIntoEmployee 11,8886, 'Anoop', 'CLERK', 8888, '1993-01-12', 1100.00, .0 ,20
+EXEC InsertIntoEmployee 12, 8100, 'Yash', 'ANALYST', NULL, '2003-05-03', 6000.00, .0 ,20
+EXEC InsertIntoEmployee 13,8900, 'Jatin', 'CLERK', 8698, '1991-12-03', 950.00, .0 ,30
+EXEC InsertIntoEmployee 14,8902, 'Fakir', 'ANALYST', 8566, '1991-12-03', 3500.00, .0 ,20
+
+
+SELECT * FROM Employee
+
+--1
+CREATE OR ALTER FUNCTION DisplayEmployeeDetails () RETURNS TABLE
+AS
+RETURN (SELECT * FROM Employee)
+
+SELECT * FROM DisplayEmployeeDetails()
+
+--CREATE OR ALTER FUNCTION AddEmployee(@sno int, @empNo int, @eName nchar(30), @job nchar(30),
+--	@manager int, @hiredate date, @salary float, @commission float, @deptNo int)
+--	RETURNS TABLE
+--AS
+--BEGIN
+--INSERT INTO Employee VALUES(@sno, @empNo, @eName , @job,@manager, @hiredate , @salary , @commission , @deptNo);
+
+--RETURN(SELECT * FROM Employee)
+--END
+
+--2
+--already created procedure above
+EXEC InsertIntoEmployee 15,8088, 'Ramesh', 'CLERK', 8789, '2022-08-09', 4500.00, NULL ,10
+
+--3
+CREATE OR ALTER FUNCTION CountEmployee() RETURNS TABLE
+AS RETURN(SELECT COUNT(*) AS EmployeeCount FROM Employee)
+
+SELECT * FROM CountEmployee()
+
+--4
+CREATE OR ALTER FUNCTION EmpDetailPerDept(@deptNum int) RETURNS TABLE
+AS RETURN(SELECT * FROM Employee WHERE deptno = @deptNum)
+
+SELECT * FROM EmpDetailPerDept(30)
+
+--5
+CREATE OR ALTER PROCEDURE SortEmployee 
+AS
+	SELECT * FROM Employee ORDER BY empno ASC
+
+EXEC SortEmployee
+--CREATE OR ALTER FUNCTION SortEmpRecord(@tableName varchar(30)) RETURNS TABLE
+--AS 
+--DECLARE @subquery varchar(MAX)
+--SET @subquery = 'SELECT * FROM '+@tableName+' ORDER BY '+empno +'ASC'
+--RETURN
+
+--SELECT * FROM SortEmpRecord(Employee)
+
+--6
+CREATE OR ALTER PROCEDURE UpdateSalaryForLastInserted
+AS
+	DECLARE @latest INT
+    SELECT TOP 1 @latest = empno FROM Employee ORDER BY sno DESC
+    UPDATE EMPLOYEE SET salary = 500 WHERE empno = @latest
+
+EXEC UpdateSalaryForLastInserted
+--CREATE OR ALTER FUNCTION UpdateSalary(@sno int) RETURNS TABLE
+--AS
+--DECLARE @bonus int = 500
+----INSERT INTO @tableType SELECT employeeId,name,salary + (salary+@bonus) FROM EmployeeT
+--UPDATE Employee SET salary = salary+(salary+@bonus) WHERE sno =@sno
+--return
+
+--7
+CREATE OR ALTER PROCEDURE DeletedLastInserted
+AS
+DECLARE @latest int
+SELECT TOP (1) @latest = empno FROM Employee ORDER BY sno DESC
+DELETE FROM Employee WHERE empno = @latest
+
+EXEC DeletedLastInserted

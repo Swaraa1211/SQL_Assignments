@@ -1,0 +1,71 @@
+CREATE TABLE PRODUCTS(
+	product_code varchar(20) primary key,
+	product_name varchar(100),
+	price int,
+	quantity_remaining int,
+	quantity_sold int
+	);
+
+CREATE TABLE SALES(
+	order_id int primary key identity,
+	order_date date,
+	product_code varchar(20) FOREIGN KEY REFERENCES PRODUCTS(product_code),
+	quantity_ordered int,
+	sale_price int
+	);
+DROP TABLE SALES
+
+SELECT * FROM PRODUCTS
+SELECT * FROM SALES
+
+INSERT INTO PRODUCTS VALUES('P1','iPhone 13 Pro Max',1200, 5,195)
+INSERT INTO PRODUCTS VALUES('P2','AirPods Pro',279, 10,90)
+INSERT INTO PRODUCTS VALUES('P3','MacBook Pro 16',5000, 2, 48)
+INSERT INTO PRODUCTS VALUES('P4','iPad Air',650, 1,9)
+
+UPDATE PRODUCTS SET quantity_remaining = 50 WHERE product_code = 'P2'
+
+
+CREATE OR ALTER PROCEDURE iPhoneSales @quantity int
+AS
+DECLARE @salePrice int
+SET @salePrice = @quantity * 1200
+INSERT INTO SALES VALUES(SYSDATETIME(),'P1', @quantity, @salePrice)
+UPDATE PRODUCTS SET quantity_remaining = quantity_remaining - @quantity WHERE product_code = 'P1'
+UPDATE PRODUCTS SET quantity_sold = quantity_sold + @quantity WHERE product_code = 'P1'
+
+EXEC iPhoneSales 2
+
+CREATE OR ALTER PROCEDURE ProductSales (@quantity int, @productName varchar(20))
+AS
+BEGIN
+DECLARE @remaining_quantity int
+SELECT @remaining_quantity = quantity_remaining
+FROM PRODUCTS WHERE product_name = @productName;
+
+DECLARE @price int
+SELECT @price = price
+FROM PRODUCTS WHERE product_name = @productName;
+
+	IF (@remaining_quantity < @quantity)
+    BEGIN
+        PRINT ('Not enough quantity_remaining in stock to fulfill the order');
+        RETURN;
+    END
+	UPDATE Products
+    SET quantity_remaining = quantity_remaining - @quantity,
+        quantity_sold = quantity_sold + @quantity
+    WHERE product_name = @productName;
+    -- Insert a new row into the Sales table with the order details
+    DECLARE @product_code varchar(20);
+    SELECT @product_code = product_code
+    FROM Products
+    WHERE product_name = 'iphone 13 pro max';
+	--inserting into sales table
+    INSERT INTO Sales (order_date, product_code, quantity_ordered, sale_price)
+    VALUES (SYSDATETIME(), @product_code, @quantity, @price*@quantity);
+END
+
+EXEC ProductSales 5, 'AirPods Pro';
+
+
